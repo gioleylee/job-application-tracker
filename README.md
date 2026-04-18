@@ -37,16 +37,3 @@ A browser-based tracker for managing job applications, interview stages, follow-
 
 - Data is stored in the browser where the app is opened.
 - The `Load demo data` button inserts sample entries for quick preview.
-
-## Publish To GitHub
-
-Run the following commands in this folder:
-
-```powershell
-git init
-git add .
-git commit -m "Initial commit: job application tracker"
-git branch -M main
-git remote add origin https://github.com/<your-username>/<your-repo>.git
-git push -u origin main
-```
