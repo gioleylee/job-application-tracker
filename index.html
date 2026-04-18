@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Career Dashboard</p>
+        <h1>Track every application like it matters.</h1>
+        <p class="hero-text">
+          Stay on top of roles, interviews, follow-ups, and offers with a focused tracker that saves directly in your browser.
+        </p>
+      </div>
+      <div class="hero-panel">
+        <p class="panel-label">This Week</p>
+        <div class="hero-metrics">
+          <div>
+            <span id="weekApplied">0</span>
+            <small>Applications logged</small>
+          </div>
+          <div>
+            <span id="weekFollowUps">0</span>
+            <small>Follow-ups due</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel form-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Add Or Update</p>
+            <h2 id="formTitle">New application</h2>
+          </div>
+          <button id="cancelEditBtn" class="ghost-btn hidden" type="button">Cancel edit</button>
+        </div>
+
+        <form id="applicationForm" class="application-form">
+          <input id="applicationId" name="applicationId" type="hidden">
+
+          <label>
+            Company
+            <input id="company" name="company" type="text" placeholder="OpenAI" required>
+          </label>
+
+          <label>
+            Role
+            <input id="role" name="role" type="text" placeholder="Product Analyst" required>
+          </label>
+
+          <div class="form-grid">
+            <label>
+              Location
+              <input id="location" name="location" type="text" placeholder="Remote / Taipei">
+            </label>
+
+            <label>
+              Status
+              <select id="status" name="status">
+                <option value="Applied">Applied</option>
+                <option value="Screening">Screening</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Offer">Offer</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Withdrawn">Withdrawn</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Applied date
+              <input id="appliedDate" name="appliedDate" type="date" required>
+            </label>
+
+            <label>
+              Salary range
+              <input id="salary" name="salary" type="text" placeholder="$90k - $110k">
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Job link
+              <input id="jobLink" name="jobLink" type="url" placeholder="https://...">
+            </label>
+
+            <label>
+              Follow-up date
+              <input id="followUpDate" name="followUpDate" type="date">
+            </label>
+          </div>
+
+          <label>
+            Notes
+            <textarea id="notes" name="notes" rows="4" placeholder="Recruiter contact, interview prep points, referral notes..."></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button class="primary-btn" type="submit">Save application</button>
+            <button id="seedDemoBtn" class="ghost-btn" type="button">Load demo data</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel dashboard-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Overview</p>
+            <h2>Pipeline snapshot</h2>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span id="totalCount">0</span>
+            <p>Total applications</p>
+          </article>
+          <article class="stat-card">
+            <span id="activeCount">0</span>
+            <p>Active pipeline</p>
+          </article>
+          <article class="stat-card">
+            <span id="interviewCount">0</span>
+            <p>Interview stage</p>
+          </article>
+          <article class="stat-card">
+            <span id="offerCount">0</span>
+            <p>Offers</p>
+          </article>
+        </div>
+
+        <div class="filters">
+          <label class="search-field">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Company, role, location">
+          </label>
+          <label class="filter-field">
+            <span>Status</span>
+            <select id="statusFilter">
+              <option value="All">All statuses</option>
+              <option value="Applied">Applied</option>
+              <option value="Screening">Screening</option>
+              <option value="Interviewing">Interviewing</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Withdrawn">Withdrawn</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="board" id="statusBoard"></div>
+
+        <div class="list-header">
+          <div>
+            <p class="eyebrow">Applications</p>
+            <h2>Saved roles</h2>
+          </div>
+          <button id="exportBtn" class="ghost-btn" type="button">Export JSON</button>
+        </div>
+
+        <div id="applicationList" class="application-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="applicationCardTemplate">
+    <article class="application-card">
+      <div class="card-top">
+        <div>
+          <h3 class="company-name"></h3>
+          <p class="role-name"></p>
+        </div>
+        <span class="status-badge"></span>
+      </div>
+      <div class="meta-row"></div>
+      <p class="notes-copy"></p>
+      <div class="card-actions">
+        <a class="link-btn" target="_blank" rel="noreferrer">Open listing</a>
+        <button class="ghost-btn edit-btn" type="button">Edit</button>
+        <button class="ghost-btn delete-btn" type="button">Delete</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build and dependency folders (safe to ignore for static projects)
+node_modules/
+dist/
+build/
+coverage/
+
+# Local cache/storage
+.cache/
