@@ -13,7 +13,13 @@
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Career Dashboard</p>
+        <div class="hero-topbar">
+          <p class="eyebrow">Career Dashboard</p>
+          <button id="themeToggleBtn" class="theme-toggle" type="button" aria-pressed="false">
+            <span class="theme-toggle-label">Dark mode</span>
+            <span id="themeToggleText">Off</span>
+          </button>
+        </div>
         <h1>Track every application like it matters.</h1>
         <p class="hero-text">
           Stay on top of roles, interviews, follow-ups, and offers with a focused tracker that saves directly in your browser.
@@ -83,8 +89,24 @@
             </label>
 
             <label>
-              Salary range
-              <input id="salary" name="salary" type="text" placeholder="$90k - $110k">
+              Interview date
+              <input id="interviewDate" name="interviewDate" type="date">
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Priority
+              <select id="priority" name="priority">
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+
+            <label>
+              Source
+              <input id="source" name="source" type="text" placeholder="LinkedIn, referral, company site">
             </label>
           </div>
 
@@ -97,6 +119,30 @@
             <label>
               Follow-up date
               <input id="followUpDate" name="followUpDate" type="date">
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Recruiter or contact
+              <input id="contactName" name="contactName" type="text" placeholder="Jamie Lee">
+            </label>
+
+            <label>
+              Contact email
+              <input id="contactEmail" name="contactEmail" type="email" placeholder="jamie@company.com">
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Salary range
+              <input id="salary" name="salary" type="text" placeholder="$90k - $110k">
+            </label>
+
+            <label>
+              Next step
+              <input id="nextStep" name="nextStep" type="text" placeholder="Send follow-up, prep case study">
             </label>
           </div>
 
@@ -137,6 +183,14 @@
             <span id="offerCount">0</span>
             <p>Offers</p>
           </article>
+          <article class="stat-card">
+            <span id="overdueCount">0</span>
+            <p>Overdue follow-ups</p>
+          </article>
+          <article class="stat-card">
+            <span id="highPriorityCount">0</span>
+            <p>High priority</p>
+          </article>
         </div>
 
         <div class="filters">
@@ -156,16 +210,41 @@
               <option value="Withdrawn">Withdrawn</option>
             </select>
           </label>
+          <label class="filter-field">
+            <span>Sort</span>
+            <select id="sortSelect">
+              <option value="applied-desc">Newest applied</option>
+              <option value="applied-asc">Oldest applied</option>
+              <option value="followup-asc">Follow-up soonest</option>
+              <option value="priority-desc">Highest priority</option>
+              <option value="company-asc">Company A-Z</option>
+            </select>
+          </label>
         </div>
 
         <div class="board" id="statusBoard"></div>
+
+        <section class="attention-panel">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="eyebrow">Needs Attention</p>
+              <h2>Next actions</h2>
+            </div>
+          </div>
+          <div id="attentionList" class="attention-list"></div>
+        </section>
 
         <div class="list-header">
           <div>
             <p class="eyebrow">Applications</p>
             <h2>Saved roles</h2>
           </div>
-          <button id="exportBtn" class="ghost-btn" type="button">Export JSON</button>
+          <div class="toolbar-actions">
+            <input id="importFileInput" type="file" accept="application/json,.json" hidden>
+            <button id="exportBtn" class="ghost-btn" type="button">Save data</button>
+            <button id="importBtn" class="ghost-btn" type="button">Load data</button>
+            <button id="clearAllBtn" class="ghost-btn danger-btn" type="button">Clear all</button>
+          </div>
         </div>
 
         <div id="applicationList" class="application-list"></div>
