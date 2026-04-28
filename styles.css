@@ -342,6 +342,95 @@ textarea {
   background: var(--stat-bg);
 }
 
+.analytics-panel {
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  background: var(--stat-bg);
+}
+
+.rate-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.rate-card,
+.chart-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  background: var(--board-bg);
+}
+
+.rate-card span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rate-card p,
+.chart-head p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 14px;
+}
+
+.chart-head {
+  margin-bottom: 14px;
+}
+
+.chart-head h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.funnel-chart,
+.monthly-chart {
+  display: grid;
+  gap: 10px;
+}
+
+.funnel-row,
+.monthly-row {
+  display: grid;
+  gap: 6px;
+}
+
+.chart-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.chart-track {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  overflow: hidden;
+}
+
+.chart-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #f0a36a);
+}
+
+[data-theme="dark"] .chart-fill {
+  background: linear-gradient(90deg, var(--accent), #ffd0b7);
+}
+
 .attention-list {
   display: grid;
   gap: 10px;
@@ -546,8 +635,10 @@ textarea {
 
   .form-grid,
   .stats-grid,
+  .rate-grid,
   .filters,
-  .board {
+  .board,
+  .chart-grid {
     grid-template-columns: 1fr;
   }
 

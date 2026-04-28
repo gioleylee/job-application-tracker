@@ -67,6 +67,8 @@ const applicationList = document.querySelector("#applicationList");
 const template = document.querySelector("#applicationCardTemplate");
 const statusBoard = document.querySelector("#statusBoard");
 const attentionList = document.querySelector("#attentionList");
+const funnelChart = document.querySelector("#funnelChart");
+const monthlyChart = document.querySelector("#monthlyChart");
 const searchInput = document.querySelector("#searchInput");
 const statusFilter = document.querySelector("#statusFilter");
 const sortSelect = document.querySelector("#sortSelect");
@@ -380,6 +382,7 @@ function render() {
   const filteredApplications = getFilteredApplications();
 
   renderStats(filteredApplications);
+  renderAnalytics(filteredApplications);
   renderBoard(filteredApplications);
   renderAttention(filteredApplications);
   renderList(filteredApplications);
@@ -426,6 +429,71 @@ function renderStats(applications) {
   document.querySelector("#highPriorityCount").textContent = highPriority;
   document.querySelector("#weekApplied").textContent = thisWeek;
   document.querySelector("#weekFollowUps").textContent = followUps;
+}
+
+function renderAnalytics(applications) {
+  const total = applications.length;
+  const responded = applications.filter(hasResponse).length;
+  const interviewed = applications.filter(hasInterviewSignal).length;
+  const offers = applications.filter((application) => application.status === "Offer").length;
+  const rejected = applications.filter((application) => application.status === "Rejected").length;
+
+  document.querySelector("#responseRate").textContent = formatPercent(responded, total);
+  document.querySelector("#interviewRate").textContent = formatPercent(interviewed, total);
+  document.querySelector("#offerRate").textContent = formatPercent(offers, total);
+  document.querySelector("#rejectionRate").textContent = formatPercent(rejected, total);
+
+  renderFunnelChart([
+    { label: "Applied", value: total },
+    { label: "Responded", value: responded },
+    { label: "Interviewed", value: interviewed },
+    { label: "Offers", value: offers }
+  ]);
+
+  renderMonthlyChart(applications);
+}
+
+function renderFunnelChart(items) {
+  funnelChart.innerHTML = "";
+  const maxValue = Math.max(...items.map((item) => item.value), 0);
+
+  items.forEach((item) => {
+    funnelChart.append(createChartRow(item.label, item.value, maxValue));
+  });
+}
+
+function renderMonthlyChart(applications) {
+  monthlyChart.innerHTML = "";
+
+  const months = getLastSixMonths();
+  const counts = months.map(({ key, label }) => ({
+    label,
+    value: applications.filter((application) => (application.appliedDate || "").startsWith(key)).length
+  }));
+  const maxValue = Math.max(...counts.map((item) => item.value), 0);
+
+  counts.forEach((item) => {
+    monthlyChart.append(createChartRow(item.label, item.value, maxValue));
+  });
+}
+
+function createChartRow(label, value, maxValue) {
+  const row = document.createElement("div");
+  const labelRow = document.createElement("div");
+  const track = document.createElement("div");
+  const fill = document.createElement("div");
+
+  row.className = label.length <= 8 ? "funnel-row" : "monthly-row";
+  labelRow.className = "chart-label";
+  track.className = "chart-track";
+  fill.className = "chart-fill";
+  fill.style.width = `${maxValue ? (value / maxValue) * 100 : 0}%`;
+
+  labelRow.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+  track.append(fill);
+  row.append(labelRow, track);
+
+  return row;
 }
 
 function renderBoard(applications) {
@@ -566,6 +634,36 @@ function formatDate(value) {
     month: "short",
     day: "numeric"
   });
+}
+
+function formatPercent(part, total) {
+  if (!total) {
+    return "0%";
+  }
+
+  return `${Math.round((part / total) * 100)}%`;
+}
+
+function hasResponse(application) {
+  return application.status !== "Applied";
+}
+
+function hasInterviewSignal(application) {
+  return Boolean(application.interviewDate) || ["Interviewing", "Offer"].includes(application.status);
+}
+
+function getLastSixMonths() {
+  const now = new Date();
+  const months = [];
+
+  for (let offset = 5; offset >= 0; offset -= 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const label = date.toLocaleDateString(undefined, { month: "short" });
+    months.push({ key, label });
+  }
+
+  return months;
 }
 
 function sortApplications(a, b) {

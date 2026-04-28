@@ -48,6 +48,9 @@ try {
   await expectText(page.locator("#totalCount"), "1");
   await expectText(page.locator("#activeCount"), "1");
   await expectText(page.locator("#highPriorityCount"), "1");
+  await expectText(page.locator("#responseRate"), "0%");
+  await expectText(page.locator("#interviewRate"), "100%");
+  await expectText(page.locator("#offerRate"), "0%");
   await expectText(page.locator(".application-card .company-name").first(), "Anthropic");
   await expectEventuallyText(page.locator("#attentionList .attention-title").first(), "Anthropic - Product Operations");
 
@@ -57,6 +60,8 @@ try {
 
   await expectText(page.locator("#interviewCount"), "1");
   await expectText(page.locator(".status-badge").first(), "Interviewing");
+  await expectText(page.locator("#responseRate"), "100%");
+  await expectEventuallyText(page.locator("#funnelChart .chart-label").nth(1), "Responded1");
 
   await page.locator("#statusFilter").selectOption("Interviewing");
   await expectText(page.locator("#applicationList .application-card").first().locator(".company-name"), "Anthropic");
@@ -86,7 +91,7 @@ try {
   await expectEventuallyText(page.locator(".application-card .company-name").first(), "Stripe");
   await fs.rm(importPath, { force: true });
 
-  console.log("Verification passed: dark mode, richer tracking fields, next-actions, save/load, clear-all, add, edit, sort, and filter flows succeeded in a live browser session.");
+  console.log("Verification passed: dark mode, analytics charts, richer tracking fields, next-actions, save/load, clear-all, add, edit, sort, and filter flows succeeded in a live browser session.");
 } finally {
   if (browser) {
     await browser.close();

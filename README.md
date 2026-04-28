@@ -2,12 +2,18 @@
 
 A browser-based tracker for managing job applications, interview stages, follow-up dates, and offers.
 
+## Screenshots
+
+![Light mode dashboard](./screenshots/dashboard-light.png)
+
+![Dark mode dashboard](./screenshots/dashboard-dark.png)
+
 ## Features
 
 - Add, edit, and delete applications
 - Track company, role, status, salary, interview date, follow-up date, source, recruiter details, next step, link, and notes
 - Filter by status, search by text, and sort by date, priority, follow-up timing, or company
-- View summary metrics, a lightweight pipeline board, and a next-actions panel
+- View summary metrics, response/interview/offer analytics, a lightweight pipeline board, and a next-actions panel
 - Toggle between light and dark mode with saved preference
 - Save data in the browser with `localStorage`
 - Save your applications as JSON and load them back later
@@ -41,6 +47,7 @@ A browser-based tracker for managing job applications, interview stages, follow-
 1. Run `npm install`
 2. Run `npm run serve`
 3. Open `http://127.0.0.1:4173`
+4. Optional: run `npm run screenshots` to refresh the README preview images
 
 ## Verify In A Browser
 
