@@ -2,65 +2,67 @@ const STORAGE_KEY = "job-application-tracker-v1";
 const THEME_KEY = "job-application-theme";
 const STATUS_COLUMNS = ["Applied", "Screening", "Interviewing", "Offer"];
 
-const demoApplications = [
-  {
-    id: crypto.randomUUID(),
-    company: "OpenAI",
-    role: "Operations Analyst",
-    location: "Remote",
-    status: "Interviewing",
-    appliedDate: "2026-04-15",
-    interviewDate: "2026-04-30",
-    priority: "High",
-    source: "Referral",
-    salary: "$95k - $120k",
-    jobLink: "https://example.com/openai-operations-analyst",
-    followUpDate: "2026-04-22",
-    contactName: "Jamie Chen",
-    contactEmail: "jamie@example.com",
-    nextStep: "Prep metrics story for panel",
-    notes: "Reached recruiter screen. Prepare metrics and cross-functional examples.",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    company: "Figma",
-    role: "Product Support Specialist",
-    location: "Singapore",
-    status: "Applied",
-    appliedDate: "2026-04-17",
-    interviewDate: "",
-    priority: "Medium",
-    source: "LinkedIn",
-    salary: "$70k - $88k",
-    jobLink: "https://example.com/figma-support",
-    followUpDate: "2026-04-24",
-    contactName: "",
-    contactEmail: "",
-    nextStep: "Send follow-up if no reply",
-    notes: "Strong fit with writing samples and async collaboration background.",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    company: "Notion",
-    role: "Community Manager",
-    location: "Remote",
-    status: "Offer",
-    appliedDate: "2026-04-10",
-    interviewDate: "",
-    priority: "High",
-    source: "Company site",
-    salary: "$85k - $100k",
-    jobLink: "https://example.com/notion-community",
-    followUpDate: "",
-    contactName: "Morgan",
-    contactEmail: "morgan@example.com",
-    nextStep: "Review offer details and respond",
-    notes: "Offer received. Compare compensation, growth scope, and time zone expectations.",
-    createdAt: new Date().toISOString()
-  }
-];
+function createDemoApplications() {
+  return [
+    {
+      id: crypto.randomUUID(),
+      company: "OpenAI",
+      role: "Operations Analyst",
+      location: "Remote",
+      status: "Interviewing",
+      appliedDate: daysFromToday(-7),
+      interviewDate: daysFromToday(2),
+      priority: "High",
+      source: "Referral",
+      salary: "$95k - $120k",
+      jobLink: "https://example.com/openai-operations-analyst",
+      followUpDate: daysFromToday(0),
+      contactName: "Jamie Chen",
+      contactEmail: "jamie@example.com",
+      nextStep: "Prep metrics story for panel",
+      notes: "Reached recruiter screen. Prepare metrics and cross-functional examples.",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: crypto.randomUUID(),
+      company: "Figma",
+      role: "Product Support Specialist",
+      location: "Singapore",
+      status: "Applied",
+      appliedDate: daysFromToday(-5),
+      interviewDate: "",
+      priority: "Medium",
+      source: "LinkedIn",
+      salary: "$70k - $88k",
+      jobLink: "https://example.com/figma-support",
+      followUpDate: daysFromToday(2),
+      contactName: "",
+      contactEmail: "",
+      nextStep: "Send follow-up if no reply",
+      notes: "Strong fit with writing samples and async collaboration background.",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: crypto.randomUUID(),
+      company: "Notion",
+      role: "Community Manager",
+      location: "Remote",
+      status: "Offer",
+      appliedDate: daysFromToday(-12),
+      interviewDate: "",
+      priority: "High",
+      source: "Company site",
+      salary: "$85k - $100k",
+      jobLink: "https://example.com/notion-community",
+      followUpDate: "",
+      contactName: "Morgan",
+      contactEmail: "morgan@example.com",
+      nextStep: "Review offer details and respond",
+      notes: "Offer received. Compare compensation, growth scope, and time zone expectations.",
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
 
 const form = document.querySelector("#applicationForm");
 const applicationList = document.querySelector("#applicationList");
@@ -110,7 +112,7 @@ const state = {
 };
 
 applyTheme(state.theme);
-fields.appliedDate.value = new Date().toISOString().split("T")[0];
+fields.appliedDate.value = daysFromToday(0);
 
 render();
 
@@ -127,7 +129,7 @@ form.addEventListener("submit", (event) => {
     interviewDate: data.get("interviewDate"),
     priority: data.get("priority"),
     source: data.get("source").trim(),
-    jobLink: data.get("jobLink").trim(),
+    jobLink: safeLink(data.get("jobLink")),
     followUpDate: data.get("followUpDate"),
     contactName: data.get("contactName").trim(),
     contactEmail: data.get("contactEmail").trim(),
@@ -172,11 +174,9 @@ cancelEditBtn.addEventListener("click", () => {
 });
 
 seedDemoBtn.addEventListener("click", () => {
-  if (state.applications.length === 0) {
-    state.applications = [...demoApplications];
-  } else {
-    state.applications = [...demoApplications, ...state.applications];
-  }
+  // Fresh ids each time, so loading the demo twice never creates entries that
+  // share an id (deleting or editing one would otherwise hit its twin too).
+  state.applications = [...createDemoApplications(), ...state.applications];
 
   persistApplications();
   resetForm();
@@ -208,6 +208,12 @@ importFileInput.addEventListener("change", async (event) => {
     const text = await file.text();
     const parsed = JSON.parse(text);
     const normalized = normalizeImportedApplications(parsed);
+
+    if (state.applications.length > 0 && !window.confirm(
+      `Replace the ${state.applications.length} saved application(s) with the ${normalized.length} in this file? This cannot be undone.`
+    )) {
+      return;
+    }
 
     state.applications = normalized;
     persistApplications();
@@ -242,6 +248,13 @@ applicationList.addEventListener("click", (event) => {
   const { id } = card.dataset;
 
   if (target.classList.contains("delete-btn")) {
+    const doomed = state.applications.find((application) => application.id === id);
+    const label = doomed ? `${doomed.company} - ${doomed.role}` : "this application";
+
+    if (!window.confirm(`Delete ${label}? This cannot be undone.`)) {
+      return;
+    }
+
     state.applications = state.applications.filter((application) => application.id !== id);
     persistApplications();
 
@@ -284,17 +297,33 @@ applicationList.addEventListener("click", (event) => {
   }
 });
 
+// Date inputs hold local calendar dates. toISOString() reports the UTC date,
+// which is yesterday or tomorrow for part of each day outside UTC.
+function daysFromToday(offset) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 function loadApplications() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? normalizeImportedApplications(JSON.parse(raw)) : [];
   } catch {
     return [];
   }
 }
 
 function loadTheme() {
-  const savedTheme = localStorage.getItem(THEME_KEY);
+  let savedTheme = null;
+
+  try {
+    savedTheme = localStorage.getItem(THEME_KEY);
+  } catch {
+    // Storage can be blocked (private mode, strict settings); fall back to the system theme.
+  }
 
   if (savedTheme === "light" || savedTheme === "dark") {
     return savedTheme;
@@ -303,12 +332,25 @@ function loadTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+let storageWarningShown = false;
+
 function persistApplications() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.applications));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.applications));
+  } catch {
+    if (!storageWarningShown) {
+      storageWarningShown = true;
+      window.alert("Your changes could not be saved in this browser (storage is full or blocked). Use \"Save\" to export a JSON copy before closing this tab.");
+    }
+  }
 }
 
 function persistTheme() {
-  localStorage.setItem(THEME_KEY, state.theme);
+  try {
+    localStorage.setItem(THEME_KEY, state.theme);
+  } catch {
+    // The theme still applies for this session.
+  }
 }
 
 function applyTheme(theme) {
@@ -326,7 +368,7 @@ function saveApplicationsToFile() {
   link.download = "job-applications.json";
   link.click();
 
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function normalizeImportedApplications(data) {
@@ -334,24 +376,33 @@ function normalizeImportedApplications(data) {
     throw new Error("Imported data must be an array.");
   }
 
+  const seenIds = new Set();
+
   return data.map((item) => {
     if (!item || typeof item !== "object") {
       throw new Error("Invalid application entry.");
     }
 
+    // Ids must be unique: edit and delete look applications up by id.
+    let id = typeof item.id === "string" && item.id ? item.id : crypto.randomUUID();
+    if (seenIds.has(id)) {
+      id = crypto.randomUUID();
+    }
+    seenIds.add(id);
+
     return {
-      id: typeof item.id === "string" && item.id ? item.id : crypto.randomUUID(),
+      id,
       company: String(item.company || "").trim(),
       role: String(item.role || "").trim(),
       location: String(item.location || "").trim(),
       status: isValidStatus(item.status) ? item.status : "Applied",
-      appliedDate: String(item.appliedDate || "").trim(),
-      interviewDate: String(item.interviewDate || "").trim(),
+      appliedDate: normalizeDate(item.appliedDate),
+      interviewDate: normalizeDate(item.interviewDate),
       priority: isValidPriority(item.priority) ? item.priority : "Medium",
       source: String(item.source || "").trim(),
       salary: String(item.salary || "").trim(),
-      jobLink: String(item.jobLink || "").trim(),
-      followUpDate: String(item.followUpDate || "").trim(),
+      jobLink: safeLink(item.jobLink),
+      followUpDate: normalizeDate(item.followUpDate),
       contactName: String(item.contactName || "").trim(),
       contactEmail: String(item.contactEmail || "").trim(),
       nextStep: String(item.nextStep || "").trim(),
@@ -359,6 +410,24 @@ function normalizeImportedApplications(data) {
       createdAt: typeof item.createdAt === "string" && item.createdAt ? item.createdAt : new Date().toISOString()
     };
   }).filter((item) => item.company && item.role && item.appliedDate);
+}
+
+function normalizeDate(value) {
+  const text = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(new Date(`${text}T00:00:00`).getTime()) ? text : "";
+}
+
+// Only web links are kept. A "javascript:" URL in an imported file would
+// otherwise run script when the listing link is clicked.
+function safeLink(value) {
+  const text = String(value || "").trim();
+
+  try {
+    const url = new URL(text);
+    return url.protocol === "http:" || url.protocol === "https:" ? text : "";
+  } catch {
+    return "";
+  }
 }
 
 function isValidStatus(status) {
@@ -373,7 +442,7 @@ function resetForm() {
   state.editingId = null;
   form.reset();
   fields.applicationId.value = "";
-  fields.appliedDate.value = new Date().toISOString().split("T")[0];
+  fields.appliedDate.value = daysFromToday(0);
   formTitle.textContent = "New application";
   cancelEditBtn.classList.add("hidden");
 }
@@ -616,7 +685,7 @@ function renderList(applications) {
     notesCopy.textContent = buildNotesSummary(application);
 
     const link = card.querySelector(".link-btn");
-    if (application.jobLink) {
+    if (safeLink(application.jobLink)) {
       link.href = application.jobLink;
     } else {
       link.removeAttribute("href");
@@ -759,8 +828,9 @@ function isWithinDays(value, days) {
 
   const date = new Date(`${value}T00:00:00`);
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const diff = today - date;
-  return diff >= 0 && diff <= days * 24 * 60 * 60 * 1000;
+  return diff >= 0 && diff < days * 24 * 60 * 60 * 1000;
 }
 
 function isFollowUpDue(value) {

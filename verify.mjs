@@ -91,6 +91,24 @@ try {
   await expectEventuallyText(page.locator(".application-card .company-name").first(), "Stripe");
   await fs.rm(importPath, { force: true });
 
+  // Importing over existing data asks first, and unsafe listing links are dropped.
+  await fs.writeFile(importPath, JSON.stringify([
+    { company: "Unsafe", role: "Link", appliedDate: "2026-04-21", jobLink: "javascript:alert(1)" }
+  ]));
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#importFileInput").setInputFiles(importPath);
+  await expectEventuallyText(page.locator(".application-card .company-name").first(), "Unsafe");
+  await expectAttribute(page.locator(".application-card .link-btn").first(), "href", null);
+  await fs.rm(importPath, { force: true });
+
+  // Demo data loaded twice must not share ids: deleting one card removes exactly one.
+  await page.locator("#seedDemoBtn").click();
+  await page.locator("#seedDemoBtn").click();
+  await expectEventuallyText(page.locator("#totalCount"), "7");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator(".delete-btn").first().click();
+  await expectEventuallyText(page.locator("#totalCount"), "6");
+
   console.log("Verification passed: dark mode, analytics charts, richer tracking fields, next-actions, save/load, clear-all, add, edit, sort, and filter flows succeeded in a live browser session.");
 } finally {
   if (browser) {
